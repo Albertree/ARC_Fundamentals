@@ -1,4 +1,4 @@
-from components import *
+from components.components import *
 
 class PAIR_RELATION: # symmetric
     def __init__(self, pair1, pair2):
