@@ -1,12 +1,13 @@
 import os
 import json
 import glob
+import random
 from pathlib import Path
 import numpy as np
 
 class ARCDataset:
     # load training data
-    def load_data(self, type = 'train', form = 'list', shuffle = False, jcode = True):
+    def load_data(self, type = 'train', form = 'tuple_in_tuple', shuffle = False, jcode = True):
         if type == 'train':
             path = Path('./data/training/')
         elif type == 'eval':
@@ -19,8 +20,14 @@ class ARCDataset:
 
         json_files = glob.glob(os.path.join(path, '*.json'))
 
-        # load json file with corresponding form (dict or list)
-        if form == 'list':
+        # nested list to tuple
+        def totuple(nested_list):
+            if isinstance(nested_list, list):
+                return tuple(totuple(item) for item in nested_list)
+            return nested_list
+        
+        # load json file with corresponding form (list_in_list, list_in_dict, tuple_in_list, tuple_in_dict, tuple_in_tuple)
+        if form == 'list_in_list':
             for file in json_files:
                 task = []
                 with open(file, 'r') as f:
@@ -35,19 +42,68 @@ class ARCDataset:
                     task = [ttrain, ttest]                    
                 tasks.append(task)
                 
-        elif form == 'dict':
+        elif form == 'list_in_dict':
             for file in json_files:
                 with open(file, 'r') as f:
                     data = json.load(f)
                 tasks.append(data)
 
+        elif form == 'tuple_in_dict':
+            # hodel
+            data = {}
+            for fn in os.listdir(path):
+                with open(f'{path}/{fn}') as f:
+                    data[fn.rstrip('.json')] = json.load(f)
+            ast = lambda g: tuple(tuple(r) for r in g)
+            tasks = {
+                'train': {k: [{
+                    'input': ast(e['input']),
+                    'output': ast(e['output']),
+                } for e in v['train']] for k, v in data.items()},
+                'test': {k: [{
+                    'input': ast(e['input']),
+                    'output': ast(e['output']),
+                } for e in v['test']] for k, v in data.items()}
+            }
+
+        elif form == 'tuple_in_list':
+            for file in json_files:
+                task = []
+                with open(file, 'r') as f:
+                    data = json.load(f)
+                    task.append(data['train'])
+                    ttrain = []
+                    for i in range(len(data['train'])):
+                        ttrain.append(totuple(list(data['train'][i].values())))
+                    ttest = []
+                    for i in range(len(data['test'])):
+                        ttest.append(totuple(list(data['test'][i].values())))
+                    task = [ttrain, ttest]                 
+                tasks.append(task)
+
+        elif form == 'tuple_in_tuple':
+            for file in json_files:
+                task = []
+                with open(file, 'r') as f:
+                    data = json.load(f)
+                    task.append(data['train'])
+                    ttrain = []
+                    for i in range(len(data['train'])):
+                        ttrain.append(list(data['train'][i].values()))
+                    ttest = []
+                    for i in range(len(data['test'])):
+                        ttest.append(list(data['test'][i].values()))
+                    task = [ttrain, ttest]                    
+                tasks.append(task)            
+            tasks = totuple(tasks)
+
         else:
-            raise ValueError("Invalid arg 'form'. Please use 'dict' or 'list'.")
+            raise ValueError("Invalid arg 'form'. Please use 'dict' or 'list' or 'tuple'.")
         
         # suffle tasks
         if shuffle:
-            np.random.seed = 777
-            np.random.shuffle(tasks)  
+            random.seed = 777
+            random.shuffle(tasks)  
 
         # make j_codes list
         for i in range(len(json_files)):

@@ -475,6 +475,14 @@ class PIXEL:
     #     return property
         
 
+class TRANSFORMED:
+    def __init__(self, xyz, t, p=None, g=None, o=None, x=None, prev=None):
+        self.id = (t, p, g, o, x)
+        self.type = "transformed"
+
+        self.history = []
+        self.view = xyz
+
         
 
 
