@@ -3,7 +3,7 @@ from DSL.hodel_utils import *
 from DSL.dsl3 import *
 
 # GRID
-def grid_colorset(grid):
+def grid_color(grid):
     return list(set([grid[i][j] for i in range(len(grid)) for j in range(len(grid[0])) if grid[i][j] != 12]))
 
 def grid_to_colcoord(grid):
@@ -58,16 +58,16 @@ def object_colcoord_to_colorgrid(object):
 #     # return a list of integer and integer tuple (color, (row, col))
 #     return [(object[i][j], (i, j)) for i in range(len(list(object))) for j in range(len(list(object)[0])) if list(object)[i][j] != 12]
 
-def absolute_coordinates_of_object(coordinates, pos):
-    return [(coordinates[i][0] + pos[0], coordinates[i][1] + pos[1]) for i in range(len(coordinates))]
+def absolute_coordinate_of_object(coordinate, pos):
+    return [(coordinate[i][0] + pos[0], coordinate[i][1] + pos[1]) for i in range(len(coordinate))]
 
-def shape_of_object(object):
+def measure_shape(object):
     # return an array of 0 or 1, 0 for value 12, 1 for other values
     shape = [[0 for j in range(len(object[0]))] for i in range(len(object))]
     for i in range(len(object)):
         for j in range(len(object[0])): 
             if object[i][j] != 12:
-                shape[i][j] = 0 # 0 for valid color (color between 0 and 9)
+                shape[i][j] = 1 # 0 for valid color (color between 0 and 9)
             else:
                 shape[i][j] = -1 # -1 for no color (color 12)
     return shape
@@ -258,31 +258,35 @@ class GRID:
         
         ############################################################
         # REPRESENTATIONS
-
+        self.colorgrid = self.view 
+        self.colcoord = grid_to_colcoord(self.colorgrid)
 
         ############################################################
         # PROPERTIES
-        self.colorgrid = self.view 
-
         self.objects = find_all_objects(self.colorgrid)
         
-        self.colorset = grid_colorset(self.colorgrid)
-        self.row_indices = range(len(self.colorgrid))
-        self.col_indices = range(len(self.colorgrid[0]))
-        self.coordinates = [(i, j) for i in self.row_indices for j in self.col_indices]
-        self.colcoord = grid_to_colcoord(self.colorgrid)
+        self.color = grid_color(self.colorgrid)
+        self.row_index = range(len(self.colorgrid))
+        self.col_index = range(len(self.colorgrid[0]))
+        self.coordinate = [(i, j) for i in self.row_index for j in self.col_index]
 
         self.height = len(self.colorgrid)
         self.width = len(self.colorgrid[0])
         self.size = (self.height, self.width)
-        self.area = self.height * self.width
+        self.shape = measure_shape(self.colorgrid)
+        self.area = measure_area(self.shape)
+        self.center = center_of_grid(self.colorgrid)
 
         # key coordinates
         self.margin = margin_of_grid(self.colorgrid)
         self.inner = inner_of_grid(self.colorgrid)
         self.corner = corner_of_grid(self.colorgrid)
         self.edge = edge_of_grid(self.colorgrid)
-        self.center = center_of_grid(self.colorgrid)
+
+        self.left_top = (0, 0)
+        self.right_top = (0, self.width)
+        self.left_bottom = (self.height, 0)
+        self.right_bottom = (self.height, self.width)
 
         # symmetry
         self.hori_symm = grid_horizontal_symmetry(self.colorgrid)
@@ -294,21 +298,21 @@ class GRID:
             self.diag_symm = False
             self.anti_diag_symm = False
 
-        self.property = {
-            "height" : self.height,
-            "width" : self.width,
-            "size" : self.size,
-            "area" : self.area,
-            "margin" : self.margin,
-            "inner" : self.inner,
-            "corner" : self.corner,
-            "edge" : self.edge,
-            "center" : self.center,
-            "hori_symm" : self.hori_symm,
-            "verti_symm" : self.verti_symm,
-            "diag_symm" : self.diag_symm,
-            "anti_diag_symm" : self.anti_diag_symm
-        }
+        # self.property = {
+        #     "height" : self.height,
+        #     "width" : self.width,
+        #     "size" : self.size,
+        #     "area" : self.area,
+        #     "margin" : self.margin,
+        #     "inner" : self.inner,
+        #     "corner" : self.corner,
+        #     "edge" : self.edge,
+        #     "center" : self.center,
+        #     "hori_symm" : self.hori_symm,
+        #     "verti_symm" : self.verti_symm,
+        #     "diag_symm" : self.diag_symm,
+        #     "anti_diag_symm" : self.anti_diag_symm
+        # }
         ############################################################
         # ANCESTOR
         self.ancestor = ppp
@@ -337,44 +341,38 @@ class OBJECT:
 
         ############################################################
         # REPRESENTATIONS
-
+        self.colorgrid = self.view # list of lists, each list has a color value of a pixel
+        self.colcoord = list(ggg.objects[o]["obj"])
 
         ############################################################
         # PROPERTIES
-        self.colorgrid = self.view # list of lists, each list has a color value of a pixel
+        # idk
         self.pixels = object_to_pixel_list(self.colorgrid) # list of tuples, each tuples are coordinates
+        self.pos = ggg.objects[o]["pos"] # only in object not in grid
+        self.color = ggg.objects[o]["color"] # also in pixel
+        self.method = ggg.objects[o]["method"] # only in object not in grid
         
-        self.colcoords = list(ggg.objects[o]["obj"])
-        self.pos = ggg.objects[o]["pos"]
-        self.colorset = ggg.objects[o]["colorset"]
-        self.method = ggg.objects[o]["method"]
-        
-        self.row_indices = range(len(self.colorgrid))
-        self.col_indices = range(len(self.colorgrid[0]))
-        self.coordinates = self.pixels
-        self.coordinates_abs = absolute_coordinates_of_object(self.coordinates, self.pos)
+        self.row_index = range(len(self.colorgrid)) # also in pixel
+        self.col_index = range(len(self.colorgrid[0])) # also in pixel
+        self.coordinate = absolute_coordinate_of_object(self.pixels, self.pos) # also in pixel
 
         self.height = len(self.colorgrid)
         self.width = len(self.colorgrid[0])
         self.size = (self.height, self.width)
-
-        self.shape = shape_of_object(self.colorgrid)
+        self.shape = measure_shape(self.colorgrid)
         self.area = measure_area(self.shape)
-
-        # bbox, relative_coord, relative_colcoord
+        self.center = absolute_coordinate_of_object(center_of_grid(self.colorgrid), self.pos)
 
         # key coordinates
-        self.margin = margin_of_grid(self.colorgrid)
-        self.inner = inner_of_grid(self.colorgrid)
-        self.corner = corner_of_grid(self.colorgrid)
-        self.edge = edge_of_grid(self.colorgrid)
-        self.center = center_of_grid(self.colorgrid)
+        self.margin = absolute_coordinate_of_object(margin_of_grid(self.colorgrid), self.pos)
+        self.inner = absolute_coordinate_of_object(inner_of_grid(self.colorgrid), self.pos)
+        self.corner = absolute_coordinate_of_object(corner_of_grid(self.colorgrid), self.pos)
+        self.edge = absolute_coordinate_of_object(edge_of_grid(self.colorgrid), self.pos)
 
-        self.margin_abs = absolute_coordinates_of_object(self.margin, self.pos)
-        self.inner_abs = absolute_coordinates_of_object(self.inner, self.pos)
-        self.corner_abs = absolute_coordinates_of_object(self.corner, self.pos)
-        self.edge_abs = absolute_coordinates_of_object(self.edge, self.pos)
-        self.center_abs = absolute_coordinates_of_object(self.center, self.pos)
+        self.left_top = (self.pos[0], self.pos[1])
+        self.right_top = (self.pos[0], self.pos[1] + self.width)
+        self.left_bottom = (self.pos[0] + self.height, self.pos[1])
+        self.right_bottom = (self.pos[0] + self.height, self.pos[1] + self.width)
 
         # symmetry
         self.hori_symm = grid_horizontal_symmetry(self.colorgrid) # 상하 대칭
@@ -387,21 +385,21 @@ class OBJECT:
             self.anti_diag_symm = False
 
 
-        self.property = {
-            "height" : self.height,
-            "width" : self.width,
-            "size" : self.size,
-            "area" : self.area,
-            "margin" : self.margin,
-            "inner" : self.inner,
-            "corner" : self.corner,
-            "edge" : self.edge,
-            "center" : self.center,
-            "hori_symm" : self.hori_symm,
-            "verti_symm" : self.verti_symm,
-            "diag_symm" : self.diag_symm,
-            "anti_diag_symm" : self.anti_diag_symm
-        }
+        # self.property = {
+        #     "height" : self.height,
+        #     "width" : self.width,
+        #     "size" : self.size,
+        #     "area" : self.area,
+        #     "margin" : self.margin,
+        #     "inner" : self.inner,
+        #     "corner" : self.corner,
+        #     "edge" : self.edge,
+        #     "center" : self.center,
+        #     "hori_symm" : self.hori_symm,
+        #     "verti_symm" : self.verti_symm,
+        #     "diag_symm" : self.diag_symm,
+        #     "anti_diag_symm" : self.anti_diag_symm
+        # }
         
         ############################################################
         # ANCESTOR
@@ -430,27 +428,28 @@ class PIXEL:
 
         ############################################################
         # VIEW
-        self.view = ooo.colcoords[x][0] # color
+        self.view = [ooo.colcoord[x][0]] # color
 
         ############################################################
         # REPRESENTATIONS
-        self.colcoord = ooo.colcoords[x]
+        self.colorgrid = self.view
+        self.colcoord = [ooo.colcoord[x]]
 
         ############################################################
         # PROPERTIES
-        self.color = ooo.colcoords[x][0]
-        self.row_index = ooo.colcoords[x][1][0]
-        self.col_index = ooo.colcoords[x][1][1]
+        self.color = ooo.colcoord[x][0]
+        self.row_index = ooo.colcoord[x][1][0]
+        self.col_index = ooo.colcoord[x][1][1]
         self.coordinate = (self.row_index, self.col_index)
-        self.coordinate_abs = (self.row_index + ooo.pos[0] if ooo.pos[0] == 0 else self.row_index, self.col_index + ooo.pos[1] if ooo.pos[1] == 0 else self.col_index)
+        # self.coordinate_abs = (self.row_index + ooo.pos[0] if ooo.pos[0] == 0 else self.row_index, self.col_index + ooo.pos[1] if ooo.pos[1] == 0 else self.col_index)
 
-        self.property = {
-            "color" : self.color,
-            "row_index" : self.row_index,
-            "col_index" : self.col_index,
-            "coordinate" : self.coordinate,
-            "coordinate_abs" : self.coordinate_abs
-        }
+        # self.property = {
+        #     "color" : self.color,
+        #     "row_index" : self.row_index,
+        #     "col_index" : self.col_index,
+        #     "coordinate" : self.coordinate,
+        #     "coordinate_abs" : self.coordinate_abs
+        # }
 
         ############################################################
         # ANCESTOR

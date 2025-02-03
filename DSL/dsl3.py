@@ -12,12 +12,12 @@ def get_left_top_pos(obj):
             topmost_coord = obj[i][1][1]
     return (leftmost_coord, topmost_coord)
 
-def get_colorset(obj):
+def get_color(obj):
     obj = list(obj)
-    colorset = set()
+    color = set()
     for i in range(len(obj)):
-        colorset.add(obj[i][0])
-    return list(colorset)
+        color.add(obj[i][0])
+    return list(color)
 
 # change object list to dictionary and save the object function parameters
 def find_all_objects(grid):
@@ -28,86 +28,86 @@ def find_all_objects(grid):
     
     # {"obj": [frozenset({(5, (0, 2)), (5, (2, 0)), (5, (1, 1))})],
     # "pos": [(0, 0)],
-    # "colorset": [5],
+    # "color": [5],
     # "method": [True, True, True] }
 
     # 1. single color, diagonal, background
     for obj in objects(grid, True, True, True):
-        object_info = {"obj": [], "pos": [], "colorset": [], "method": []}
+        object_info = {"obj": [], "pos": [], "color": [], "method": []}
         if not any(obj == existing_obj["obj"] for existing_obj in object_list):
             object_info["obj"] = obj
             object_info["pos"] = get_left_top_pos(obj)
-            object_info["colorset"] = get_colorset(obj)
+            object_info["color"] = get_color(obj)
             object_info["method"] = [True, True, True]
             object_list.append(object_info)
 
     # 2. single color, diagonal, no background
     for obj in objects(grid, False, True, True):
-        object_info = {"obj": [], "pos": [], "colorset": [], "method": []}
+        object_info = {"obj": [], "pos": [], "color": [], "method": []}
         if not any(obj == existing_obj["obj"] for existing_obj in object_list):
             object_info["obj"] = obj
             object_info["pos"] = get_left_top_pos(obj)
-            object_info["colorset"] = get_colorset(obj)
+            object_info["color"] = get_color(obj)
             object_info["method"] = [False, True, True]
             object_list.append(object_info)
 
     # 3. single color, not diagonal, background
     for obj in objects(grid, True, False, True):
-        object_info = {"obj": [], "pos": [], "colorset": [], "method": []}
+        object_info = {"obj": [], "pos": [], "color": [], "method": []}
         if not any(obj == existing_obj["obj"] for existing_obj in object_list):
             object_info["obj"] = obj
             object_info["pos"] = get_left_top_pos(obj)
-            object_info["colorset"] = get_colorset(obj)
+            object_info["color"] = get_color(obj)
             object_info["method"] = [True, False, True]
             object_list.append(object_info)
 
     # 4. single color, not diagonal, no background
     for obj in objects(grid, False, False, True):
-        object_info = {"obj": [], "pos": [], "colorset": [], "method": []}
+        object_info = {"obj": [], "pos": [], "color": [], "method": []}
         if not any(obj == existing_obj["obj"] for existing_obj in object_list):
             object_info["obj"] = obj
             object_info["pos"] = get_left_top_pos(obj)
-            object_info["colorset"] = get_colorset(obj)
+            object_info["color"] = get_color(obj)
             object_info["method"] = [False, False, True]
             object_list.append(object_info)
 
     # 5. multiple color, diagonal, background
     for obj in objects(grid, True, True, False):
-        object_info = {"obj": [], "pos": [], "colorset": [], "method": []}
+        object_info = {"obj": [], "pos": [], "color": [], "method": []}
         if not any(obj == existing_obj["obj"] for existing_obj in object_list):
             object_info["obj"] = obj
             object_info["pos"] = get_left_top_pos(obj)
-            object_info["colorset"] = get_colorset(obj)
+            object_info["color"] = get_color(obj)
             object_info["method"] = [True, True, False]
             object_list.append(object_info)
 
     # 6. multiple color, diagonal, no background
     for obj in objects(grid, False, True, False):
-        object_info = {"obj": [], "pos": [], "colorset": [], "method": []}
+        object_info = {"obj": [], "pos": [], "color": [], "method": []}
         if not any(obj == existing_obj["obj"] for existing_obj in object_list):
             object_info["obj"] = obj
             object_info["pos"] = get_left_top_pos(obj)
-            object_info["colorset"] = get_colorset(obj)
+            object_info["color"] = get_color(obj)
             object_info["method"] = [False, True, False]
             object_list.append(object_info)
 
     # 7. multiple color, not diagonal, background
     for obj in objects(grid, True, False, False):
-        object_info = {"obj": [], "pos": [], "colorset": [], "method": []}
+        object_info = {"obj": [], "pos": [], "color": [], "method": []}
         if not any(obj == existing_obj["obj"] for existing_obj in object_list):
             object_info["obj"] = obj
             object_info["pos"] = get_left_top_pos(obj)
-            object_info["colorset"] = get_colorset(obj)
+            object_info["color"] = get_color(obj)
             object_info["method"] = [True, False, False]
             object_list.append(object_info)
 
     # 8. multiple color, not diagonal, no background
     for obj in objects(grid, False, False, False):
-        object_info = {"obj": [], "pos": [], "colorset": [], "method": []}
+        object_info = {"obj": [], "pos": [], "color": [], "method": []}
         if not any(obj == existing_obj["obj"] for existing_obj in object_list):
             object_info["obj"] = obj
             object_info["pos"] = get_left_top_pos(obj)
-            object_info["colorset"] = get_colorset(obj)
+            object_info["color"] = get_color(obj)
             object_info["method"] = [False, False, False]
             object_list.append(object_info)
 

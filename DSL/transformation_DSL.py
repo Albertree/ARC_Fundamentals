@@ -1,5 +1,8 @@
+from typing import Tuple, List
+
 Boolean = bool
 Integer = int
+Grid = Tuple[Tuple[Integer]]
 
 # grid operation 과 object operation 을 나누어야 하는가
 # grid operation 은 grid를 return 하는 것이기 때문에, object select 시 crop -> operation -> paste 가 포함되어 있는 것과 같다
@@ -142,15 +145,7 @@ def color_switch(on_where, of_which_component1, of_which_component2):
 
 
 # hodel
-# def rot90(grid):
-#     result = list(row for row in zip(*grid[::-1]))
-#     for i in range(len(result)):
-#         result[i] = list(result[i])
-#     return result
-
 def rot90(grid):
-    print(grid)
-    grid = grid.colorgrid
     return tuple(row for row in zip(*grid[::-1]))
 
 def rot180(grid):
@@ -173,7 +168,6 @@ def diagonal_flip(grid):
     grid = grid.colorgrid
     return tuple(tuple(row[::-1]) for row in zip(*grid))[::-1]
 
-# antidiag flip
 def antidiag_flip(grid):
     grid = grid.colorgrid
     return tuple(row[::-1] for row in zip(*grid[::-1]))
@@ -189,24 +183,74 @@ def antidiag_flip(grid):
 # how_many_times    == 회전 횟수        (int)                       == int
 # pivot             == 회전 기준지점     (tuple)                     == coord or coords
 # keep_original     == 원본 보존여부     (bool)                      == bool
-def rotate(what_to_rotate, which_direction="cw", how_many_times=1, pivot=None, keep_original=False):
-    # if what_to_rotate.type == "grid":
-    #     pivot = what_to_rotate.center
-    # elif what_to_rotate.type == "object":
-    #     if pivot is None:
-    #         pivot = what_to_rotate.center
-    # elif what_to_rotate.type == "pixel":
-    #     pivot = what_to_rotate.coord
+def rotate(what_to_rotate, which_direction="cw", how_many_times=1, pivot=None):
+    if what_to_rotate.type == "grid":
+        object_center = what_to_rotate.center
+        pivot = what_to_rotate.center
+        mother_grid = what_to_rotate
+
+    elif what_to_rotate.type == "object":
+        if pivot is None:
+            object_center = what_to_rotate.center
+            pivot = what_to_rotate.center
+            mother_grid = what_to_rotate.ancestor
+        else:
+            object_center = what_to_rotate.center
+            pivot = pivot
+            mother_grid = what_to_rotate.ancestor
     
-    if which_direction == "cw":
-        print("cw")
-        for _ in range(how_many_times):
-            what_to_rotate.colorgrid = rot90(what_to_rotate.colorgrid)
-    elif which_direction == "ccw":
-        print("ccw")
-        for _ in range(how_many_times):
-            what_to_rotate.colorgrid = rot270(what_to_rotate.colorgrid)
+    rotations = how_many_times % 4
+
+    if which_direction == "ccw":
+        rotations = (4 - rotations) % 4
+
+    for _ in range(rotations):
+        what_to_rotate.colorgrid = rot90(what_to_rotate.colorgrid)
+
+    print(what_to_rotate.colorgrid)
+
+    if len(object_center) != 1:
+        object_center_rep = tuple(float(sum(p) / len(p)) for p in zip(*object_center))
+    else:
+        object_center_rep = object_center[0]
+
+    if len(pivot) != 1:
+        pivot_rep = tuple(float(sum(p) / len(p)) for p in zip(*pivot))
+    else:
+        pivot_rep = pivot[0]
+
+    print(object_center, pivot)
+    print(object_center_rep, pivot_rep)
+
+    rotated_center = object_center_rep
+    rotated_center = (rotated_center[0] - pivot_rep[0], rotated_center[1] - pivot_rep[1])
+    for _ in range(rotations):
+        rotated_center = (rotated_center[1], -rotated_center[0])
+        print(rotated_center)
+
+    rotated_center = (rotated_center[0] + pivot_rep[0], rotated_center[1] + pivot_rep[1])
+    print(rotated_center)
+
+
+    if rotated_center[0] != int(rotated_center[0]):
+        rc_split1 = (int(rotated_center[0]), int(rotated_center[0])+1)
+    else:
+        rc_split1 = (int(rotated_center[0]), int(rotated_center[0]))
+
+    if rotated_center[1] != int(rotated_center[1]):
+        rc_split2 = (int(rotated_center[1]), int(rotated_center[1])+1)
+    else:
+        rc_split2 = (int(rotated_center[1]), int(rotated_center[1]))
+    print(rc_split1, rc_split2, "*****")
+
     
+    rotated_center = tuple(set((x, y) for y in rc_split2 for x in rc_split1))
+    print(rotated_center)
+
+
+
+    # rotated_object = teleport(what_to_rotate, what_to_rotate.center, rotated_center)
+
     # print(pivot)
 
     # Normalize the number of rotations
@@ -237,7 +281,7 @@ def rotate(what_to_rotate, which_direction="cw", how_many_times=1, pivot=None, k
 # which_direction  == 대칭이동 방향    (horizontal or vertical)    == flip_dir
 # pivot           == 대칭이동 기준점    (tuple)                     == coord or coords
 # keep_original   == 원본 보존여부     (bool)                      == bool
-def flip(what_to_flip, which_direction, pivot, keep_original):  
+def flip(what_to_flip, which_direction, pivot):  
     pass
 
 # move # (오브젝트 or 픽셀)이 (어떠한 방향)으로 (얼마나) (어느 지점을 기준으로) 이동하는데 (원본을 자르는지 보존하는지)
@@ -245,7 +289,7 @@ def flip(what_to_flip, which_direction, pivot, keep_original):
 # which_direction  == 이동 방향        (up or down or left or right)    == move_dir
 # how_many_times   == 이동 횟수        (int)                            == int
 # keep_original   == 원본 보존여부     (bool)                            == bool
-def move(what_to_move, which_direction, how_many_times, keep_original):
+def move(what_to_move, which_direction, how_many_times):
     pass
 
 # # drag # (오브젝트 or 그리드 or 픽셀)의 (어떠한 지점을 잡아서) (어디로) 이동하는데 (원본을 자르는지 보존하는지)
@@ -258,7 +302,7 @@ def move(what_to_move, which_direction, how_many_times, keep_original):
 # to_where          == 이동 목적지      (tuple)             == coord or coords
 # keep_original     == 원본 보존여부     (bool)              == bool
 # return            == 이동된 것        (grid or object)   == colorgrid or colcoord    
-def teleport(what_to_teleport, grab_which_point, to_where, keep_original):
+def teleport(what_to_teleport, grab_which_point, to_where):
     if what_to_teleport.type == "object":
         if grab_which_point is None:
             grab_which_point = what_to_teleport.left_top
