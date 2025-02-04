@@ -1,5 +1,9 @@
 from typing import Tuple, List
 
+from components.components import *
+from DSL.hodel_utils import *
+from DSL.dsl3 import *
+
 Boolean = bool
 Integer = int
 Grid = Tuple[Tuple[Integer]]
@@ -121,10 +125,25 @@ Grid = Tuple[Tuple[Integer]]
 # on_where          == 칠할 판     (grid or object or pixel)    == colorgrid or colcoord
 # what_to_color     == 칠할 곳     (coordinates)                == list of tuples
 # to_which_color    == 칠할 색     (color)                      == int between 0 and 12
-def coloring(on_where, what_to_color, to_which_color):
-    for i in range(len(what_to_color)):
-        on_where.colorgrid[what_to_color[i][0]][what_to_color[i][1]] = to_which_color
-    return on_where
+# def coloring(on_where, what_to_color, to_which_color):
+#     for i in range(len(what_to_color)):
+#         on_where.colorgrid[what_to_color[i][0]][what_to_color[i][1]] = to_which_color
+#     return on_where
+
+def coloring(on_what, where_to_color, to_which_color):
+    
+    if on_what.type == "grid":
+        for i in range(len(where_to_color)):
+            on_what.colorgrid[where_to_color[i][0]][where_to_color[i][1]] = to_which_color
+        return on_what
+    elif on_what.type == "object":
+        for i in range(len(where_to_color)):
+            on_what.colorgrid[where_to_color[i][0]][where_to_color[i][1]] = to_which_color
+        return on_what
+
+
+
+
 
 # color switch # 존재하는 색 2개를 바꾸기 (조건: 한 그리드 내부에서 색을 바꾸기)
 # on_where              == 바뀔 판      (grid or object)   == colorgrid or colcoord
@@ -132,8 +151,8 @@ def coloring(on_where, what_to_color, to_which_color):
 # of_which_component2   == 바꿀 색 2    (color)            == int between 0 and 12
 def color_switch(on_where, of_which_component1, of_which_component2):
     assert of_which_component1 != of_which_component2
-    assert of_which_component1 in on_where.colorset
-    assert of_which_component2 in on_where.colorset
+    assert of_which_component1 in on_where.color
+    assert of_which_component2 in on_where.color
 
     for i in range(len(on_where.colorgrid)):
         for j in range(len(on_where.colorgrid[i])):
@@ -142,6 +161,11 @@ def color_switch(on_where, of_which_component1, of_which_component2):
             elif on_where.colorgrid[i][j] == of_which_component2:
                 on_where.colorgrid[i][j] = of_which_component1
     return on_where
+
+##$$$$$
+# def colorgrid_to_colcoord(colorgrid):
+#     return [(colorgrid[i][j], (i, j)) for i in range(len(colorgrid)) for j in range(len(colorgrid[0])) if colorgrid[i][j] != 12]
+
 
 
 # hodel
@@ -184,6 +208,8 @@ def antidiag_flip(grid):
 # pivot             == 회전 기준지점     (tuple)                     == coord or coords
 # keep_original     == 원본 보존여부     (bool)                      == bool
 def rotate(what_to_rotate, which_direction="cw", how_many_times=1, pivot=None):
+    result = what_to_rotate
+
     if what_to_rotate.type == "grid":
         object_center = what_to_rotate.center
         pivot = what_to_rotate.center
@@ -207,7 +233,7 @@ def rotate(what_to_rotate, which_direction="cw", how_many_times=1, pivot=None):
     for _ in range(rotations):
         what_to_rotate.colorgrid = rot90(what_to_rotate.colorgrid)
 
-    print(what_to_rotate.colorgrid)
+    # print(what_to_rotate.colorgrid)
 
     if len(object_center) != 1:
         object_center_rep = tuple(float(sum(p) / len(p)) for p in zip(*object_center))
@@ -219,17 +245,17 @@ def rotate(what_to_rotate, which_direction="cw", how_many_times=1, pivot=None):
     else:
         pivot_rep = pivot[0]
 
-    print(object_center, pivot)
-    print(object_center_rep, pivot_rep)
+    # print(object_center, pivot)
+    # print(object_center_rep, pivot_rep)
 
     rotated_center = object_center_rep
     rotated_center = (rotated_center[0] - pivot_rep[0], rotated_center[1] - pivot_rep[1])
     for _ in range(rotations):
         rotated_center = (rotated_center[1], -rotated_center[0])
-        print(rotated_center)
+        # print(rotated_center)
 
     rotated_center = (rotated_center[0] + pivot_rep[0], rotated_center[1] + pivot_rep[1])
-    print(rotated_center)
+    # print(rotated_center)
 
 
     if rotated_center[0] != int(rotated_center[0]):
@@ -241,34 +267,20 @@ def rotate(what_to_rotate, which_direction="cw", how_many_times=1, pivot=None):
         rc_split2 = (int(rotated_center[1]), int(rotated_center[1])+1)
     else:
         rc_split2 = (int(rotated_center[1]), int(rotated_center[1]))
-    print(rc_split1, rc_split2, "*****")
+    # print(rc_split1, rc_split2, "*****")
 
+
+    rotated_center = list(tuple(set((x, y) for y in rc_split2 for x in rc_split1))) 
+    # print(rotated_center)
+
+
+    # update class
+
+    what_to_rotate.update_view(what_to_rotate.colorgrid)
+    # result.view = what_to_rotate.colorgrid
+    # result.center = rotated_center
     
-    rotated_center = tuple(set((x, y) for y in rc_split2 for x in rc_split1))
-    print(rotated_center)
-
-
-
-    # rotated_object = teleport(what_to_rotate, what_to_rotate.center, rotated_center)
-
-    # print(pivot)
-
-    # Normalize the number of rotations
-    # how_many_times = how_many_times % 4  # Since 4 rotations bring it back to the original
-
-    # if which_direction == "ccw":
-    #     how_many_times = 4 - how_many_times  # Convert counter-clockwise to equivalent clockwise rotations
-
-    # n = len(what_to_rotate.colorgrid)
-    # m = len(what_to_rotate.colorgrid[0]) if n > 0 else 0
-
-    # for _ in range(how_many_times):
-    # print(what_to_rotate.colorgrid)
-    # what_to_rotate.colorgrid = rot90(what_to_rotate.colorgrid)
-    # print(what_to_rotate.colorgrid)
-    # print()
-
-    return what_to_rotate.colorgrid
+    return result
 
 
 

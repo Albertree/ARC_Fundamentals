@@ -6,8 +6,8 @@ from DSL.dsl3 import *
 def grid_color(grid):
     return list(set([grid[i][j] for i in range(len(grid)) for j in range(len(grid[0])) if grid[i][j] != 12]))
 
-def grid_to_colcoord(grid):
-    return [(grid[i][j], (i, j)) for i in range(len(grid)) for j in range(len(grid[0])) if grid[i][j] != 12]
+def colorgrid_to_colcoord(colorgrid):
+    return [(colorgrid[i][j], (i, j)) for i in range(len(colorgrid)) for j in range(len(colorgrid[0])) if colorgrid[i][j] != 12]
 
 
 # OBJECT
@@ -255,11 +255,11 @@ class GRID:
         ############################################################
         # VIEW
         self.view = ppp.grids[g] # v
-        
+
         ############################################################
         # REPRESENTATIONS
         self.colorgrid = self.view 
-        self.colcoord = grid_to_colcoord(self.colorgrid)
+        self.colcoord = colorgrid_to_colcoord(self.colorgrid)
 
         ############################################################
         # PROPERTIES
@@ -277,7 +277,6 @@ class GRID:
         self.area = measure_area(self.shape)
         self.center = center_of_grid(self.colorgrid)
 
-        # key coordinates
         self.margin = margin_of_grid(self.colorgrid)
         self.inner = inner_of_grid(self.colorgrid)
         self.corner = corner_of_grid(self.colorgrid)
@@ -288,7 +287,6 @@ class GRID:
         self.left_bottom = (self.height, 0)
         self.right_bottom = (self.height, self.width)
 
-        # symmetry
         self.hori_symm = grid_horizontal_symmetry(self.colorgrid)
         self.verti_symm = grid_vertical_symmetry(self.colorgrid)
         if self.height == self.width:
@@ -297,22 +295,7 @@ class GRID:
         else:
             self.diag_symm = False
             self.anti_diag_symm = False
-
-        # self.property = {
-        #     "height" : self.height,
-        #     "width" : self.width,
-        #     "size" : self.size,
-        #     "area" : self.area,
-        #     "margin" : self.margin,
-        #     "inner" : self.inner,
-        #     "corner" : self.corner,
-        #     "edge" : self.edge,
-        #     "center" : self.center,
-        #     "hori_symm" : self.hori_symm,
-        #     "verti_symm" : self.verti_symm,
-        #     "diag_symm" : self.diag_symm,
-        #     "anti_diag_symm" : self.anti_diag_symm
-        # }
+        
         ############################################################
         # ANCESTOR
         self.ancestor = ppp
@@ -324,7 +307,7 @@ class GRID:
         ############################################################
         # RELATIONS
         self.object_relation = None # list of OBJECT_RELATION classes
-
+        
 
 
 
@@ -346,7 +329,6 @@ class OBJECT:
 
         ############################################################
         # PROPERTIES
-        # idk
         self.pixels = object_to_pixel_list(self.colorgrid) # list of tuples, each tuples are coordinates
         self.pos = ggg.objects[o]["pos"] # only in object not in grid
         self.color = ggg.objects[o]["color"] # also in pixel
@@ -363,7 +345,6 @@ class OBJECT:
         self.area = measure_area(self.shape)
         self.center = absolute_coordinate_of_object(center_of_grid(self.colorgrid), self.pos)
 
-        # key coordinates
         self.margin = absolute_coordinate_of_object(margin_of_grid(self.colorgrid), self.pos)
         self.inner = absolute_coordinate_of_object(inner_of_grid(self.colorgrid), self.pos)
         self.corner = absolute_coordinate_of_object(corner_of_grid(self.colorgrid), self.pos)
@@ -374,7 +355,6 @@ class OBJECT:
         self.left_bottom = (self.pos[0] + self.height, self.pos[1])
         self.right_bottom = (self.pos[0] + self.height, self.pos[1] + self.width)
 
-        # symmetry
         self.hori_symm = grid_horizontal_symmetry(self.colorgrid) # 상하 대칭
         self.verti_symm = grid_vertical_symmetry(self.colorgrid) # 좌우 대칭
         if self.height == self.width:
@@ -383,23 +363,6 @@ class OBJECT:
         else:
             self.diag_symm = False
             self.anti_diag_symm = False
-
-
-        # self.property = {
-        #     "height" : self.height,
-        #     "width" : self.width,
-        #     "size" : self.size,
-        #     "area" : self.area,
-        #     "margin" : self.margin,
-        #     "inner" : self.inner,
-        #     "corner" : self.corner,
-        #     "edge" : self.edge,
-        #     "center" : self.center,
-        #     "hori_symm" : self.hori_symm,
-        #     "verti_symm" : self.verti_symm,
-        #     "diag_symm" : self.diag_symm,
-        #     "anti_diag_symm" : self.anti_diag_symm
-        # }
         
         ############################################################
         # ANCESTOR
@@ -428,7 +391,7 @@ class PIXEL:
 
         ############################################################
         # VIEW
-        self.view = [ooo.colcoord[x][0]] # color
+        self.view = [ooo.colcoord[x][0]] 
 
         ############################################################
         # REPRESENTATIONS
@@ -441,15 +404,6 @@ class PIXEL:
         self.row_index = ooo.colcoord[x][1][0]
         self.col_index = ooo.colcoord[x][1][1]
         self.coordinate = (self.row_index, self.col_index)
-        # self.coordinate_abs = (self.row_index + ooo.pos[0] if ooo.pos[0] == 0 else self.row_index, self.col_index + ooo.pos[1] if ooo.pos[1] == 0 else self.col_index)
-
-        # self.property = {
-        #     "color" : self.color,
-        #     "row_index" : self.row_index,
-        #     "col_index" : self.col_index,
-        #     "coordinate" : self.coordinate,
-        #     "coordinate_abs" : self.coordinate_abs
-        # }
 
         ############################################################
         # ANCESTOR
@@ -462,16 +416,7 @@ class PIXEL:
         ############################################################
         # RELATIONS
         # NONE
-    # def property(self):
-    #     property = {
-    #         "color" : self.color,
-    #         "row_index" : self.row_index,
-    #         "col_index" : self.col_index,
-    #         "coordinate" : self.coordinate,
-    #         "coordinate_abs" : self.coordinate_abs
-    #     }
-    #     print(property)
-    #     return property
+    
         
 
 class TRANSFORMED:
