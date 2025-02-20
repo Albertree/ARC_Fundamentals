@@ -320,20 +320,27 @@ class OBJECT:
 
         ############################################################
         # VIEW
-        self.view = object_colcoord_to_colorgrid(ggg.objects[o]["obj"])
+        # self.view = object_colcoord_to_colorgrid(ggg.objects[o]["obj"])
+        self.view = object_colcoord_to_colorgrid(ggg.object_list[o]["obj"])
 
         ############################################################
         # REPRESENTATIONS
         self.colorgrid = self.view # list of lists, each list has a color value of a pixel
-        self.colcoord = list(ggg.objects[o]["obj"])
+        # self.colcoord = list(ggg.objects[o]["obj"])
+        # self.colcoord = list(find_all_objects(self.colorgrid)[o]["obj"])
+        self.colcoord = ggg.object_list[o]["obj"]
 
         ############################################################
         # PROPERTIES
         self.pixels = object_to_pixel_list(self.colorgrid) # list of tuples, each tuples are coordinates
-        self.pos = ggg.objects[o]["pos"] # only in object not in grid
-        self.color = ggg.objects[o]["color"] # also in pixel
-        self.method = ggg.objects[o]["method"] # only in object not in grid
+        # self.pos = ggg.objects[o]["pos"] # only in object not in grid
+        # self.color = ggg.objects[o]["color"] # also in pixel
+        # self.method = ggg.objects[o]["method"] # only in object not in grid
         
+        self.pos = ggg.object_list[o]["pos"] # only in object not in grid
+        self.color = ggg.object_list[o]["color"] # also in pixel
+        self.method = ggg.object_list[o]["method"] # only in object not in grid
+
         self.row_index = range(len(self.colorgrid)) # also in pixel
         self.col_index = range(len(self.colorgrid[0])) # also in pixel
         self.coordinate = absolute_coordinate_of_object(self.pixels, self.pos) # also in pixel
